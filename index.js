@@ -29,16 +29,14 @@ app.post('/webhook', async (req, res) => {
       return res.status(400).send('Invalid payload');
     }
 
-    // Extract the message part from the payload
-    let message = payload.message;
-    
-    // Remove annotations from the message
-    message = message.split('Annotations:')[0]; // This will exclude everything after "Annotations:"
+    // Extract the title and message part from the payload
+    const title = payload.title;
+    const message = payload.message;
+    console.log('Received title:', title);
+    console.log('Received message:', message);
 
-    console.log('Filtered message:', message);
-
-    // Send an email with the filtered payload
-    await sendEmail(payload.title, message);
+    // Send an email with the payload
+    await sendEmail(title, message);
 
     // Respond to the client
     res.status(200).send('Alert email sent successfully');
@@ -58,11 +56,20 @@ async function sendEmail(title, message) {
     },
   });
 
+  // Extract the part before the brackets and the part within brackets
+  const titleParts = title.match(/^(.*?)\s(\(.*\))$/);
+  const mainTitle = titleParts ? titleParts[1] : title;  // The part before the brackets
+  const titleInBrackets = titleParts ? titleParts[2] : ''; // The part inside the brackets
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: [process.env.EMAIL_TO, process.env.EMAIL_TO_1].join(', '), // Only EMAIL_TO and EMAIL_TO_1
     subject: `Webhook Alert: ${title}`,
-    text: `Alert: \nTitle: ${title}\nMessage: ${message}`,
+
+    // Use HTML to format the title (bold for the main part, normal for the bracket part)
+    html: `<p><strong>Alert:</strong></p>
+           <p><strong>Title:</strong> <b>${mainTitle}</b> ${titleInBrackets}</p>
+           <p><strong>Message:</strong> ${message}</p>`
   };
 
   await transporter.sendMail(mailOptions);
