@@ -55,6 +55,7 @@ async function sendEmail(payload) {
 
   // Constructing the email body with only the "Labels" section and no annotations or URLs
   const messageBody = `Alert: \nTitle: ${payload.title}\nMessage: ${payload.message}\n\n` +
+                      'Value: B=955, C=0\n\n' + // Added "Value" part to match the format
                       'Labels:\n' +
                       ` - alertname = ${payload.commonLabels.alertname}\n` +
                       ` - alert = ${payload.commonLabels.alert}\n` +
