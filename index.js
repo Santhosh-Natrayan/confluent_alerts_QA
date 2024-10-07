@@ -1,6 +1,5 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-
 require('dotenv').config();
 
 const app = express();
@@ -54,11 +53,23 @@ async function sendEmail(payload) {
     },
   });
 
+  // Constructing the email body with only the "Labels" section and no annotations or URLs
+  const messageBody = `Alert: \nTitle: ${payload.title}\nMessage: ${payload.message}\n\n` +
+                      'Labels:\n' +
+                      ` - alertname = ${payload.commonLabels.alertname}\n` +
+                      ` - alert = ${payload.commonLabels.alert}\n` +
+                      ` - consumer_group_id = ${payload.commonLabels.consumer_group_id}\n` +
+                      ` - grafana_folder = ${payload.commonLabels.grafana_folder}\n` +
+                      ` - instance = ${payload.commonLabels.instance}\n` +
+                      ` - job = ${payload.commonLabels.job}\n` +
+                      ` - kafka_id = ${payload.commonLabels.kafka_id}\n` +
+                      ` - topic = ${payload.commonLabels.topic}`;
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: [process.env.EMAIL_TO, process.env.EMAIL_TO_1].join(', '), // Only EMAIL_TO and EMAIL_TO_1
     subject: `Webhook Alert: ${payload.title}`,
-    text: `Alert: \nTitle: ${payload.title}\nMessage: ${payload.message}`,
+    text: messageBody,  // Use the modified message body
   };
 
   await transporter.sendMail(mailOptions);
