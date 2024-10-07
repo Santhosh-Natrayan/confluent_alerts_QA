@@ -69,7 +69,18 @@ async function sendEmail(title, message) {
     // Use HTML to format the title (bold for the main part, normal for the bracket part)
     html: `<p><strong>Alert:</strong></p>
            <p><strong>Title:</strong> <b>${mainTitle}</b> ${titleInBrackets}</p>
-           <p><strong>Message:</strong> ${message}</p>`
+           <p><strong>Message:</strong> <pre style="font-size:14px;">${message}</pre>
+           <p><strong>Labels:</strong></p>
+           <ul style="font-size:14px;">
+              <li><strong>alertname:</strong> Lag Offset for connect-lcc-jrdgrm</li>
+              <li><strong>alert:</strong> high</li>
+              <li><strong>consumer_group_id:</strong> connect-lcc-jrdgrm</li>
+              <li><strong>grafana_folder:</strong> alerts</li>
+              <li><strong>instance:</strong> api.telemetry.confluent.cloud:443</li>
+              <li><strong>job:</strong> Confluent Cloud</li>
+              <li><strong>kafka_id:</strong> lkc-9dykv0</li>
+              <li><strong>topic:</strong> CM_VEH_VDR</li>
+           </ul>`
   };
 
   await transporter.sendMail(mailOptions);
