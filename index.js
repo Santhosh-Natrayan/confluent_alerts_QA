@@ -30,11 +30,15 @@ app.post('/webhook', async (req, res) => {
     }
 
     // Extract the message part from the payload
-    const message = payload.message;
-    console.log('Received message:', message);
+    let message = payload.message;
+    
+    // Remove annotations from the message
+    message = message.split('Annotations:')[0]; // This will exclude everything after "Annotations:"
 
-    // Send an email with the payload
-    await sendEmail(payload);
+    console.log('Filtered message:', message);
+
+    // Send an email with the filtered payload
+    await sendEmail(payload.title, message);
 
     // Respond to the client
     res.status(200).send('Alert email sent successfully');
@@ -45,7 +49,7 @@ app.post('/webhook', async (req, res) => {
 });
 
 // Function to send an email
-async function sendEmail(payload) {
+async function sendEmail(title, message) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -57,8 +61,8 @@ async function sendEmail(payload) {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: [process.env.EMAIL_TO, process.env.EMAIL_TO_1].join(', '), // Only EMAIL_TO and EMAIL_TO_1
-    subject: `Webhook Alert: ${payload.title}`,
-    text: `Alert: \nTitle: ${payload.title}\nMessage: ${payload.message}`,
+    subject: `Webhook Alert: ${title}`,
+    text: `Alert: \nTitle: ${title}\nMessage: ${message}`,
   };
 
   await transporter.sendMail(mailOptions);
