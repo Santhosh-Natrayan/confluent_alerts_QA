@@ -62,7 +62,9 @@ async function sendEmail(title, message) {
     from: process.env.EMAIL_FROM,
     to: [process.env.EMAIL_TO, process.env.EMAIL_TO_1].join(', '), // Only EMAIL_TO and EMAIL_TO_1
     subject: `Webhook Alert: ${title}`,
-    text: `Alert: \nTitle: ${title}\nMessage: ${message}`,
+    html: `<p><strong>Alert:</strong></p>
+           <p><strong>Title:</strong> <b>${title}</b></p>
+           <p>Message: ${message}</p>`, // Title is bold here using <b> HTML tag
   };
 
   await transporter.sendMail(mailOptions);
