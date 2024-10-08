@@ -64,7 +64,8 @@ async function sendEmail(title, message) {
     subject: `Webhook Alert: ${title}`,
     html: `<p><strong>Alert:</strong></p>
            <p><strong>Title:</strong> <b>${title}</b></p>
-           <p>Message: ${message}</p>`, // Title is bold here using <b> HTML tag
+           <p><strong>Message:</strong></p>
+           <pre style="white-space: pre-wrap;">${message}</pre>`, // Using <pre> for message formatting and keeping new lines
   };
 
   await transporter.sendMail(mailOptions);
