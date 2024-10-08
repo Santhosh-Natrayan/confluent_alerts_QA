@@ -40,7 +40,10 @@ app.post('/webhook', async (req, res) => {
 
     console.log('Filtered message:', message);
 
-    // Make messages_behind and its value bold
+    // Remove C=1 from the Value line
+    message = message.replace(/C=\d+, /, ''); // Remove C=1, 
+
+    // Make Messages_behind and its value bold
     message = message.replace(/(Messages_behind=\d+)/g, '<strong>$1</strong>');
 
     // Send an email with the filtered title and message
