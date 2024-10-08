@@ -31,14 +31,18 @@ app.post('/webhook', async (req, res) => {
 
     // Extract the message part from the payload
     let message = payload.message;
-    
+
     // Remove annotations from the message
     message = message.split('Annotations:')[0]; // This will exclude everything after "Annotations:"
 
     console.log('Filtered message:', message);
 
+    // Remove content within brackets from the title
+    let title = payload.title.replace(/\[.*?\]/g, '').trim();
+    console.log('Filtered title:', title);
+
     // Send an email with the filtered payload
-    await sendEmail(payload.title, message);
+    await sendEmail(title, message);
 
     // Respond to the client
     res.status(200).send('Alert email sent successfully');
