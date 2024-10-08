@@ -29,19 +29,18 @@ app.post('/webhook', async (req, res) => {
       return res.status(400).send('Invalid payload');
     }
 
+    // Modify the title by removing content inside parentheses
+    let title = payload.title.replace(/\(.*\)/, '').trim();
+    
     // Extract the message part from the payload
     let message = payload.message;
-
+    
     // Remove annotations from the message
     message = message.split('Annotations:')[0]; // This will exclude everything after "Annotations:"
 
     console.log('Filtered message:', message);
 
-    // Remove content within brackets from the title
-    let title = payload.title.replace(/\[.*?\]/g, '').trim();
-    console.log('Filtered title:', title);
-
-    // Send an email with the filtered payload
+    // Send an email with the filtered title and message
     await sendEmail(title, message);
 
     // Respond to the client
