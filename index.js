@@ -72,9 +72,8 @@ async function sendEmail(title, message) {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: [process.env.EMAIL_TO, process.env.EMAIL_TO_1].join(', '), // Only EMAIL_TO and EMAIL_TO_1
-    subject: `Webhook Alert: ${title}`,
-    html: `<p><strong>Alert:</strong></p>
-           <p><strong>Title:</strong> <b>${title}</b></p>
+    subject: `${title}`, // Remove 'Alert:' prefix here
+    html: `<p><strong>Title:</strong> <b>${title}</b></p>
            <p><strong>Message:</strong></p>
            <pre style="white-space: pre-wrap;">${message}</pre>
            ${footer}`, // Adding the footer to the email
