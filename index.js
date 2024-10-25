@@ -60,7 +60,7 @@ app.post('/webhook', async (req, res) => {
     }
 
     // Generate the alert ID by appending the counter to the prefix
-    const alertId = `${alertIdPrefix}${alertCounter++}`;
+    const alertId = `${alertIdPrefix}-${alertCounter++}`;
 
     console.log('Generated Alert ID:', alertId);
 
