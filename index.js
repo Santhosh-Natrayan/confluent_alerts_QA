@@ -81,7 +81,7 @@ function generateUniqueId(status) {
 // Function to send an email
 async function sendEmail(alertId, title, message) {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: 'Outlook',
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
