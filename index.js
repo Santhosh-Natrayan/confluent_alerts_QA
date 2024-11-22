@@ -98,22 +98,10 @@ async function sendEmail(alertId, title, message) {
                   <br><img src="https://mspmovil.com/en/wp-content/uploads/software-factory.png" alt="Software Factory Logo" width="142" height="60" />
                   <br><strong>Message ID:</strong> ${alertId}`; // Adding Alert ID in the footer
 
-  // List of unique recipients from .env
+  // List of only two recipients from .env
   const recipients = [
-    process.env.EMAIL_TO,
-    process.env.EMAIL_TO_1,
-    process.env.EMAIL_TO_2,
-    process.env.EMAIL_TO_3,
-    process.env.EMAIL_TO_4,
-    process.env.EMAIL_TO_5,
-    process.env.EMAIL_TO_6,
-    process.env.EMAIL_TO_7,
-    process.env.EMAIL_TO_8,
-    process.env.EMAIL_TO_9,
-    process.env.EMAIL_TO_10,
-    process.env.EMAIL_TO_11,
-    process.env.EMAIL_TO_12,
-    process.env.EMAIL_TO_13
+    process.env.EMAIL_TO,   // First email ID
+    process.env.EMAIL_TO_1  // Second email ID
   ].join(', ');
 
   const mailOptions = {
@@ -127,7 +115,7 @@ async function sendEmail(alertId, title, message) {
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`Email sent successfully to all recipients. Alert ID: ${alertId}`);
+  console.log(`Email sent successfully to recipients: ${recipients}. Alert ID: ${alertId}`);
 }
 
 // Start the server
