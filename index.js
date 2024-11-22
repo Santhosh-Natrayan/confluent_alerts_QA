@@ -98,10 +98,11 @@ async function sendEmail(alertId, title, message) {
                   <br><img src="https://mspmovil.com/en/wp-content/uploads/software-factory.png" alt="Software Factory Logo" width="142" height="60" />
                   <br><strong>Message ID:</strong> ${alertId}`; // Adding Alert ID in the footer
 
-  // List of only two recipients from .env
+  // List of three recipients from .env
   const recipients = [
     process.env.EMAIL_TO,   // First email ID
-    process.env.EMAIL_TO_1  // Second email ID
+    process.env.EMAIL_TO_1, // Second email ID
+    process.env.EMAIL_TO_2  // Third email ID
   ].join(', ');
 
   const mailOptions = {
