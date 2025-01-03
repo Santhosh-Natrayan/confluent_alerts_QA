@@ -35,14 +35,13 @@ app.post('/webhook', async (req, res) => {
     // Extract and filter the main message part
     let message = payload.message.split('Annotations:')[0]; // Extract the part before 'Annotations:'
 
-    // Extract the 'summary' field from 'Annotations:'
-    const annotationsPart = payload.message.split('Annotations:')[1]; // Extract the part after 'Annotations:'
+    // Extract the 'summary' field from 'commonAnnotations'
     let summary = '';
-    if (annotationsPart) {
-      const match = annotationsPart.match(/summary:\s*(.+)/i); // Match 'summary:' followed by its value
-      if (match) {
-        summary = match[1].trim(); // Extract and trim the summary value
-      }
+    if (payload.commonAnnotations && payload.commonAnnotations.summary) {
+      summary = payload.commonAnnotations.summary.trim(); // Extract and trim the summary value
+      console.log('Extracted Summary:', summary); // Debug log for extracted summary
+    } else {
+      console.log('Summary not found in commonAnnotations:', payload.commonAnnotations); // Debug log if no summary found
     }
 
     // Combine the extracted message and summary
@@ -102,7 +101,7 @@ async function sendEmail(alertId, title, message) {
 
   const recipients = [
     process.env.EMAIL_TO,
-    process.env.EMAIL_TO_1,
+    process.env.EMAIL_TO_1
   ].join(', ');
 
   const mailOptions = {
