@@ -1,5 +1,6 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -14,7 +15,7 @@ app.get('/webhook', async (req, res) => {
   res.status(200).send("GET Reached");
 });
 
-// POST endpoint to handle webhook and send email
+// POST endpoint to handle webhook, send email, and create a work item
 app.post('/webhook', async (req, res) => {
   console.log('POST request received');
   try {
@@ -30,52 +31,55 @@ app.post('/webhook', async (req, res) => {
 
     // Modify the title by removing content inside parentheses
     let title = payload.title.replace(/\(.*\)/, '').trim();
-    
-    // Extract the message part from the payload
-    let message = payload.message;
-    
-    // Remove annotations from the message
-    message = message.split('Annotations:')[0]; // Exclude everything after "Annotations:"
 
-    console.log('Filtered message:', message);
+    // Extract and filter the main message part
+    let message = payload.message.split('Annotations:')[0]; // Extract the part before 'Annotations:'
 
-    // Keep only Messages_behind in the Value label
-    message = message.replace(/Value: .*?(Messages_behind=\d+)/, 'Value: $1');
-
-    // Make Messages_behind and its value bold
-    message = message.replace(/(Messages_behind=\d+)/g, '<strong>$1</strong>');
-
-    // Determine the type of alert (firing or resolved) and generate a unique ID
-    let alertIdPrefix;
-    if (message.toLowerCase().includes('firing')) {
-      alertIdPrefix = 'ALR'; // Prefix for firing alerts
-    } else if (message.toLowerCase().includes('resolved')) {
-      alertIdPrefix = 'RES'; // Prefix for resolved alerts
-    } else {
-      alertIdPrefix = 'ALR'; // Default to ALR if no specific keyword found
+    // Extract the 'summary' field from 'Annotations:'
+    const annotationsPart = payload.message.split('Annotations:')[1]; // Extract the part after 'Annotations:'
+    let summary = '';
+    if (annotationsPart) {
+      const match = annotationsPart.match(/summary:\s*(.+)/i); // Match 'summary:' followed by its value
+      if (match) {
+        summary = match[1].trim(); // Extract and trim the summary value
+      }
     }
 
-    // Generate the unique alert ID with random suffix
-    const alertId = generateUniqueId(alertIdPrefix);
+    // Combine the extracted message and summary
+    if (summary) {
+      message += `<br><strong>Summary:</strong> ${summary}`; // Append the summary to the message
+    }
 
-    console.log('Generated Alert ID:', alertId);
+    // Highlight 'Messages_behind' as before
+    message = message.replace(/Value: .*?(Messages_behind=\d+)/, 'Value: $1')
+                     .replace(/(Messages_behind=\d+)/g, '<strong>$1</strong>');
+
+    // Determine the type of alert and generate a unique ID or use the provided one
+    const alertIdPrefix = message.toLowerCase().includes('firing') ? 'ALR' : 'RES';
+    const alertId = payload.alertId || generateUniqueId(alertIdPrefix); // Use provided alertId or generate a new one
+    console.log('Generated or Received Alert ID:', alertId);
 
     // Send an email with the filtered title and message, including the alert ID
     await sendEmail(alertId, title, message);
 
+    // Create a work item in Azure DevOps
+    const workItemData = { title, description: message }; // Define work item fields
+    const response = await createWorkItem(workItemData);
+    console.log('Work item created:', response.data);
+
     // Respond to the client
-    res.status(200).send(`Alert email sent successfully. Alert ID: ${alertId}`);
+    res.status(200).send(`Alert email sent and work item created successfully. Alert ID: ${alertId}`);
   } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).send('Error sending email');
+    console.error('Error:', error.response ? error.response.data : error.message);
+    res.status(500).send('Error processing webhook');
   }
 });
 
 // Function to generate unique alert ID with a random suffix
 function generateUniqueId(status) {
-  const timestamp = Date.now().toString(36); // Convert timestamp to base-36
-  const randomSuffix = Math.floor(Math.random() * 36).toString(36); // Random single character
-  return `${status}-${timestamp}${randomSuffix}`; // Concatenate with random suffix
+  const timestamp = Date.now().toString(36); // Current timestamp converted to base 36
+  const randomSuffix = Math.floor(Math.random() * 36).toString(36); // Random suffix
+  return `${status}-${timestamp}${randomSuffix}`;
 }
 
 // Function to send an email
@@ -88,35 +92,63 @@ async function sendEmail(alertId, title, message) {
     },
   });
 
-  // Add bold styling to values and labels
   message = message.replace(/Value:/g, '<strong>Value:</strong>')
                    .replace(/Labels:/g, '<strong>Labels:</strong>')
-                   .replace(/ - /g, '<strong> - </strong>'); // Add bold to label list
+                   .replace(/ - /g, '<strong> - </strong>');
 
-  // Add a custom footer at the end with logo and Alert ID
   const footer = `<br><br><strong><em>This Alert is Generated By Software Factory Team</em></strong>
                   <br><img src="https://mspmovil.com/en/wp-content/uploads/software-factory.png" alt="Software Factory Logo" width="142" height="60" />
-                  <br><strong>Message ID:</strong> ${alertId}`; // Adding Alert ID in the footer
+                  <br><strong>Message ID:</strong> ${alertId}`;
 
-  // List of three recipients from .env
   const recipients = [
-    process.env.EMAIL_TO,   // First email ID
-    process.env.EMAIL_TO_1, // Second email ID
-    process.env.EMAIL_TO_2  // Third email ID
+    process.env.EMAIL_TO,
+    process.env.EMAIL_TO_1,
   ].join(', ');
 
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: recipients,
-    subject: `${title}`, // Remove 'Alert:' prefix here
+    subject: `${title}`,
     html: `<p><strong>Title:</strong> <b>${title}</b></p>
            <p><strong>Message:</strong></p>
            <pre style="white-space: pre-wrap;">${message}</pre>
-           ${footer}`, // Adding the footer to the email
+           ${footer}`,
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`Email sent successfully to recipients: ${recipients}. Alert ID: ${alertId}`);
+  console.log(`Email sent successfully to all recipients. Message ID: ${alertId}`);
+}
+
+// Function to create a work item in Azure DevOps
+async function createWorkItem(workItemData) {
+  const organization = 'TICMPL';
+  const project = 'Training';
+  const personalAccessToken = process.env.PAT;
+  const type = 'Bug';
+
+  const url = `https://dev.azure.com/${organization}/${project}/_apis/wit/workitems/$${type}?api-version=6.0`;
+  
+  const workItemFields = [
+    {
+      op: 'add',
+      path: '/fields/System.Title',
+      value: workItemData.title,
+    },
+    {
+      op: 'add',
+      path: '/fields/System.Description',
+      value: workItemData.description,
+    },
+  ];
+
+  const config = {
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      Authorization: `Basic ${Buffer.from(`:${personalAccessToken}`).toString('base64')}`,
+    },
+  };
+
+  return axios.post(url, workItemFields, config);
 }
 
 // Start the server
