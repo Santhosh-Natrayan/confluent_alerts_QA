@@ -44,8 +44,11 @@ app.post('/webhook', async (req, res) => {
       console.log('Summary not found in commonAnnotations:', payload.commonAnnotations); // Debug log if no summary found
     }
 
-    // Combine the extracted message and summary
-    if (summary) {
+    // Get the status of the alert (assuming it's available in the payload)
+    const status = payload.status; // Example: 'firing' or 'resolved'
+
+    // Only append summary if the status is 'firing'
+    if (status === 'firing' && summary) {
       message += `<br><strong>Summary:</strong> ${summary}`; // Append the summary to the message
     }
 
