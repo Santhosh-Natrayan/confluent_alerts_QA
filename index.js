@@ -103,18 +103,18 @@ async function sendEmail(alertId, title, message) {
   const recipients = [
     process.env.EMAIL_TO,
     process.env.EMAIL_TO_1,
-    process.env.EMAIL_TO_2,
-    process.env.EMAIL_TO_3,
-    process.env.EMAIL_TO_4,
-    process.env.EMAIL_TO_5,
-    process.env.EMAIL_TO_6,
-    process.env.EMAIL_TO_7,
-    process.env.EMAIL_TO_8,
-    process.env.EMAIL_TO_9,
-    process.env.EMAIL_TO_10,
-    process.env.EMAIL_TO_11,
-    process.env.EMAIL_TO_12,
-    process.env.EMAIL_TO_13
+    // process.env.EMAIL_TO_2,
+    // process.env.EMAIL_TO_3,
+    // process.env.EMAIL_TO_4,
+    // process.env.EMAIL_TO_5,
+    // process.env.EMAIL_TO_6,
+    // process.env.EMAIL_TO_7,
+    // process.env.EMAIL_TO_8,
+    // process.env.EMAIL_TO_9,
+    // process.env.EMAIL_TO_10,
+    // process.env.EMAIL_TO_11,
+    // process.env.EMAIL_TO_12,
+    // process.env.EMAIL_TO_13
   ].join(', ');
 
   const mailOptions = {
