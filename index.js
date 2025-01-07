@@ -32,8 +32,10 @@ app.post('/webhook', async (req, res) => {
     // Modify the title by removing content inside parentheses
     let title = payload.title.replace(/\(.*\)/, '').trim();
 
-    // Extract and filter the main message part
-    let message = payload.message.split('Annotations:')[0]; // Extract the part before 'Annotations:'
+    // Extract and filter the message part from the payload
+    let message = payload.message.split('Annotations:')[0];
+    message = message.replace(/Value: .*?(Messages_behind=\d+)/, 'Value: $1')
+                     .replace(/(Messages_behind=\d+)/g, '<strong>$1</strong>');
 
     // Extract the 'summary' field from 'commonAnnotations'
     let summary = '';
@@ -49,12 +51,8 @@ app.post('/webhook', async (req, res) => {
 
     // Only append summary if the status is 'firing'
     if (status === 'firing' && summary) {
-      message += `<br><strong>Summary:</strong> ${summary}`; // Append the summary to the message
+      message += `<br><strong>Summary:</strong> <span style="color: red;">${summary}</span>`; // Make only the summary content red
     }
-
-    // Highlight 'Messages_behind' as before
-    message = message.replace(/Value: .*?(Messages_behind=\d+)/, 'Value: $1')
-                     .replace(/(Messages_behind=\d+)/g, '<strong>$1</strong>');
 
     // Determine the type of alert and generate a unique ID or use the provided one
     const alertIdPrefix = message.toLowerCase().includes('firing') ? 'ALR' : 'RES';
@@ -104,7 +102,19 @@ async function sendEmail(alertId, title, message) {
 
   const recipients = [
     process.env.EMAIL_TO,
-    process.env.EMAIL_TO_1
+    process.env.EMAIL_TO_1,
+    process.env.EMAIL_TO_2,
+    process.env.EMAIL_TO_3,
+    process.env.EMAIL_TO_4,
+    process.env.EMAIL_TO_5,
+    process.env.EMAIL_TO_6,
+    process.env.EMAIL_TO_7,
+    process.env.EMAIL_TO_8,
+    process.env.EMAIL_TO_9,
+    process.env.EMAIL_TO_10,
+    process.env.EMAIL_TO_11,
+    process.env.EMAIL_TO_12,
+    process.env.EMAIL_TO_13
   ].join(', ');
 
   const mailOptions = {
